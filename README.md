@@ -8,10 +8,14 @@ AI captions and prompts; signed-in users generate and vote. No fake feed or scor
 are shown when the database is empty or unavailable.
 
 Apply `supabase/captions.sql` after the existing setup/auth scripts. Add
-`GEMINI_API_KEY`, `GEMINI_MODEL` and `SUPABASE_SERVICE_ROLE_KEY` in Vercel for
+`OPENROUTER_API_KEY` and `SUPABASE_SERVICE_ROLE_KEY` in Vercel for
 Production and Preview. The service-role key stays server-only and is used only
 after verified authentication to publish actual model output. Ordinary clients
 cannot forge generated captions. All vote writes use the user's session and RLS.
+
+The app uses OpenRouter's `openrouter/free` router, with no paid model fallback.
+Provider availability and account-wide free request limits still apply. The actual
+model returned by OpenRouter is recorded with each caption.
 
 The complete system prompt, user prompt, tone, output and model are stored with
 each generation. Votes have a composite primary key and owner policies; changing
@@ -27,7 +31,7 @@ new contributions rather than fabricated popularity. PM feedback is still needed
 
 Before submission, verify two real accounts cannot access one another's votes,
 that a second vote changes the score without adding a row, and that anonymous
-mutation requests fail. Confirm a real Gemini result and both prompts persist.
+mutation requests fail. Confirm a real OpenRouter result and both prompts persist.
 Run `supabase/verify-captions.sql` in the SQL editor for policy/constraint checks.
 The SQL verification rolls back its fixtures. Deploy this branch, add its callback
 URL to Supabase, disable Vercel Deployment Protection, and test in Incognito.
