@@ -1,0 +1,25 @@
+.page { width: min(1120px, 100%); margin: auto; padding: 42px 24px 80px; }
+.page header { margin-bottom: 32px; }
+.page h1 { font: 400 clamp(32px, 5vw, 52px)/1.12 Georgia, serif; margin: 14px 0; }
+.page h2 { font: 400 26px/1.2 Georgia, serif; margin-bottom: 14px; }
+.page p { line-height: 1.6; }
+.layout { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); align-items: start; gap: 30px; }
+.composer { background: #e8edde; border: 1px solid #a4b1a2; border-radius: 12px; padding: 24px; }
+.composer form { display: grid; gap: 12px; margin-top: 20px; }
+.composer label { font-weight: 600; }
+.composer textarea, .composer select { width: 100%; font: inherit; padding: 12px; color: #203d35; background: #fffef9; border: 1px solid #899986; border-radius: 6px; }
+.composer textarea { min-height: 140px; resize: vertical; }
+.composer > p { margin-bottom: 20px; }
+.card { background: #fffef9; border: 1px solid #d8ddd2; border-radius: 12px; padding: 24px; margin-bottom: 20px; overflow-wrap: anywhere; }
+.card blockquote { font: 400 27px/1.4 Georgia, serif; margin: 20px 0; }
+.card details { margin-bottom: 20px; }
+.card summary { cursor: pointer; font-size: 14px; }
+.card details p { margin-top: 10px; }
+.meta { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 13px; }
+.votes { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.votes span { margin-right: auto; font-size: 14px; }
+.votes button { background: transparent; color: #203d35; padding: 9px 12px; }
+.votes button[aria-pressed=true] { background: #203d35; color: white; }
+.votes a { text-decoration: underline; }
+.message { min-height: 26px; margin-bottom: 12px; }
+@media(max-width: 760px) { .layout { grid-template-columns: minmax(0, 1fr); } }

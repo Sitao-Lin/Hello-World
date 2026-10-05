@@ -1,5 +1,37 @@
 # The Reading Room
 
+## Assignment 4: Campus captions
+
+This extends the `week-3-auth` branch and keeps its Google sign-in, profiles,
+private avatars and public book collection. `/captions` lets visitors browse real
+AI captions and prompts; signed-in users generate and vote. No fake feed or scores
+are shown when the database is empty or unavailable.
+
+Apply `supabase/captions.sql` after the existing setup/auth scripts. Add
+`GEMINI_API_KEY`, `GEMINI_MODEL` and `SUPABASE_SERVICE_ROLE_KEY` in Vercel for
+Production and Preview. The service-role key stays server-only and is used only
+after verified authentication to publish actual model output. Ordinary clients
+cannot forge generated captions. All vote writes use the user's session and RLS.
+
+The complete system prompt, user prompt, tone, output and model are stored with
+each generation. Votes have a composite primary key and owner policies; changing
+a vote changes only its value. Public feed access exposes aggregates without user
+IDs. Attempts are reserved atomically, limited to five per user per rolling 24
+hours; failures also consume an attempt to prevent unlimited provider retries.
+
+Product rationale: Sam gets a short feed of relatable campus/NYC humor. Three
+tones make creation approachable; visible prompts explain the generated output;
+one vote per person helps readers judge quality. This improves the captioning
+workflow through context and community feedback. Daily return depends on real
+new contributions rather than fabricated popularity. PM feedback is still needed.
+
+Before submission, verify two real accounts cannot access one another's votes,
+that a second vote changes the score without adding a row, and that anonymous
+mutation requests fail. Confirm a real Gemini result and both prompts persist.
+Run `supabase/verify-captions.sql` in the SQL editor for policy/constraint checks.
+The SQL verification rolls back its fixtures. Deploy this branch, add its callback
+URL to Supabase, disable Vercel Deployment Protection, and test in Incognito.
+
 Assignment #2 extends the original Hello World Next.js app with a live book list at `/`.
 The server fetches `public.books` through the Supabase REST API on every request.
 There is no hardcoded fallback list; empty and failed requests have separate states.
