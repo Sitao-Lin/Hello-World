@@ -29,7 +29,7 @@ export default function Board({ captions, signedIn, failed }: { captions: Captio
     });
   }
   return <main className={styles.page}>
-    <header><p className="eyebrow">CAMPUS CAPTIONS</p><h1>Today’s little NYC plot twist.</h1><p>AI writes the caption. You decide whether it lands.</p></header>
+    <header><p className="eyebrow">CAMPUS CAPTIONS</p><h1>Your NYC moment. Captioned.</h1><p>Turn campus life into AI captions. Vote for the ones worth sharing.</p></header>
     <div className={styles.layout}>
       <section className={styles.composer} aria-labelledby="create-heading"><h2 id="create-heading">Give us the moment</h2><p>A missed 1 train, a dorm kitchen disaster, a bodega cat with tenure.</p>
         {signedIn ? <form onSubmit={generate}>
