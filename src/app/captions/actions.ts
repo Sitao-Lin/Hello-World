@@ -56,7 +56,9 @@ export async function generateCaption(prompt: string, vibe: string) {
     const tokenCount=(value:unknown)=>typeof value==='number'&&Number.isSafeInteger(value)&&value>=0&&value<=2147483647?value:null;
     const {error:responseError}=await admin.from('llm_responses').insert({request_id:request.id,model:actualModel,output:caption.slice(0,10000),finish_reason:typeof candidate?.finish_reason==='string'?candidate.finish_reason:null,prompt_tokens:tokenCount(result.usage?.prompt_tokens),completion_tokens:tokenCount(result.usage?.completion_tokens)});
     if(responseError) {await finish('failed','response_storage_error');return {error:'The generated response could not be recorded. Please try again.'};}
-    if (candidate?.finish_reason !== 'stop' || !caption || caption.length > 400) {await finish('failed','unusable_output');return { error: 'No usable caption was returned. Try a different moment.' };}
+    const wordCount=caption.split(/\s+/).filter(Boolean).length;
+    const isSafetyReport=/^(?:user\s+safety|safety\s*(?:assessment|classification)|safe|unsafe)\s*[:.]?/i.test(caption);
+    if (candidate?.finish_reason !== 'stop' || !caption || caption.length > 400 || wordCount<8 || wordCount>24 || isSafetyReport) {await finish('failed','unusable_output');return { error: 'The AI returned an unusable response. Nothing was published; please try again.' };}
     // Only the trusted server can publish AI outputs. Browser credentials cannot insert them.
     const { data:saved,error } = await admin.from('ai_captions').insert({ user_id: user.id, prompt, system_prompt: systemPrompt, caption, vibe, model: actualModel }).select('id').single();
     if (error) {await finish('failed','caption_storage_error');return { error: 'The caption could not be saved. Please try again.' };}
