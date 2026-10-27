@@ -1,5 +1,41 @@
 # The Reading Room
 
+## Assignment 4: Campus captions
+
+This extends the `week-3-auth` branch and keeps its Google sign-in, profiles,
+private avatars and public book collection. `/captions` lets visitors browse real
+AI captions and prompts; signed-in users generate and vote. No fake feed or scores
+are shown when the database is empty or unavailable.
+
+Apply `supabase/captions.sql` after the existing setup/auth scripts. Add
+`OPENROUTER_API_KEY` and `SUPABASE_SERVICE_ROLE_KEY` in Vercel for
+Production and Preview. The service-role key stays server-only and is used only
+after verified authentication to publish actual model output. Ordinary clients
+cannot forge generated captions. All vote writes use the user's session and RLS.
+
+The app uses OpenRouter's `openrouter/free` router, with no paid model fallback.
+Provider availability and account-wide free request limits still apply. The actual
+model returned by OpenRouter is recorded with each caption.
+
+The complete system prompt, user prompt, tone, output and model are stored with
+each generation. Votes have a composite primary key and owner policies; changing
+a vote changes only its value. Public feed access exposes aggregates without user
+IDs. Attempts are reserved atomically, limited to five per user per rolling 24
+hours; failures also consume an attempt to prevent unlimited provider retries.
+
+Product rationale: Sam gets a short feed of relatable campus/NYC humor. Three
+tones make creation approachable; visible prompts explain the generated output;
+one vote per person helps readers judge quality. This improves the captioning
+workflow through context and community feedback. Daily return depends on real
+new contributions rather than fabricated popularity. PM feedback is still needed.
+
+Before submission, verify two real accounts cannot access one another's votes,
+that a second vote changes the score without adding a row, and that anonymous
+mutation requests fail. Confirm a real OpenRouter result and both prompts persist.
+Run `supabase/verify-captions.sql` in the SQL editor for policy/constraint checks.
+The SQL verification rolls back its fixtures. Deploy this branch, add its callback
+URL to Supabase, disable Vercel Deployment Protection, and test in Incognito.
+
 Assignment #2 extends the original Hello World Next.js app with a live book list at `/`.
 The server fetches `public.books` through the Supabase REST API on every request.
 There is no hardcoded fallback list; empty and failed requests have separate states.
@@ -38,3 +74,53 @@ URL from that commit's deployment details in an incognito window and confirm boo
 are visible without signing in. Submit that URL, not the moving production alias.
 
 Supabase reference: https://supabase.com/docs/guides/api
+
+## Week 3: Google sign-in and profiles
+
+The existing collection remains public. `/reading-room` requires a verified session
+and a completed name; `/profile` requires a verified session. Navigation changes
+with the login state. Authentication uses Supabase SSR cookies and the Next.js 16
+proxy, with all database writes checked again on the server.
+
+1. In the **existing** Supabase project, run `supabase/auth.sql` after the project
+   has finished starting. It creates nullable first/last name fields, a trigger
+   on `auth.users`, profiles for existing users, and a private `avatars` bucket.
+   RLS limits profile and photo access to each owner.
+2. Create your own Google Cloud OAuth client of type **Web application**. Configure
+   its consent screen for external users. To allow grading by other accounts,
+   publish the app to production when ready (or add the grader as a test user).
+   Request only the standard `openid`, `email`, and `profile` scopes.
+3. In Google's **Authorized redirect URIs**, enter the Supabase callback URL:
+   `https://<your-project-ref>.supabase.co/auth/v1/callback`.
+   Save that client's ID and secret in Supabase Authentication → Google provider.
+   Never put the Google client secret in this repository or the browser.
+4. In Supabase Authentication → URL Configuration, add the app's exact callback
+   URLs: `http://localhost:3000/auth/callback`, your production URL followed by
+   `/auth/callback`, and the commit-specific Vercel URL followed by `/auth/callback`.
+   Set Site URL to your production URL. The app sends `/auth/callback` without
+   custom query parameters; Supabase appends its required authorization code.
+5. Keep the existing `SUPABASE_URL` and `SUPABASE_ANON_KEY` Vercel variables.
+   No additional browser environment variables are needed because this app starts
+   OAuth and handles profile uploads with server actions. `APP_URL` is an optional
+   fixed origin; leave it unset to keep login on each deployment's own domain.
+
+The profile form requires both names before entering the reading room. Photos are
+validated as JPG, PNG or WebP, at most 2 MB, and stored in Storage; the relational
+row stores only a path. Private photos are displayed with short-lived signed URLs.
+Replacing a photo removes the previous file after the profile update succeeds.
+
+### Acceptance checks
+
+- Incognito: collection loads; navigation shows Sign in; direct visits to
+  `/reading-room` and `/profile` redirect to `/login`.
+- Google sign-in: callback returns to this deployment and creates one profile.
+  New users are prompted for both names; signing in again does not duplicate it.
+- Blank or whitespace names are rejected. Save names and enter the reading room.
+- Upload a valid photo, refresh, and verify it persists. Replace it and verify the
+  old file is removed. Reject files larger than 2 MB or with unsupported types.
+- Sign out: private routes redirect to login again. A second user cannot read or
+  update the first user's profile or private avatar using their own session.
+- Verify Deployment Protection is off and submit the **commit-specific** URL.
+
+References: [Supabase SSR](https://supabase.com/docs/guides/auth/server-side/nextjs),
+[Google OAuth](https://supabase.com/docs/guides/auth/social-login/auth-google).
